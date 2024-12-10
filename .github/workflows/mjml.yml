@@ -1,0 +1,56 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Auto convert mjml files
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+    paths: 
+      - '**.mjml' 
+
+env:
+  OUT_DIR: bin
+
+jobs:
+  
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v3
+      - name: Compile
+        run: |
+          npx mjml *.mjml -o ${{ env.OUT_DIR }}
+      - name: Format
+        run: sed -i 's/  /\t/g' ${{ env.OUT_DIR }}/*.html
+        
+      - name: change doctype to html4
+        run: sed -i 's/<!doctype html>/<!DOCTYPE html PUBLIC "-\/\/W3C\/\/DTD XHTML 1.1\/\/EN" "http:\/\/www.w3.org\/TR\/xhtml11\/DTD\/xhtml11.dtd">/ig' ${{ env.OUT_DIR }}/*.html 
+      - name: close void elements
+        run: |
+          sed -i 's/<meta\(.*\)[^/]>/<meta\1" \/>/g' ${{ env.OUT_DIR }}/*.html
+          sed -i 's/<input\(.*\)[^/]>/<input\1" \/>/g' ${{ env.OUT_DIR }}/*.html
+          sed -i 's/<img\(.*\)[^/]>/<img\1" \/>/g' ${{ env.OUT_DIR }}/*.html
+          sed -i 's/<link\(.*\)[^/]>/<link\1" \/>/g' ${{ env.OUT_DIR }}/*.html
+          
+      - name: setup git
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Action"  
+
+      - name: Commit
+        run: |
+          git add bin/*
+          git commit -m "Update MJML. Last commit: ${{ github.event.head_commit.message }} ( ${{ github.event.head_commit.id }} )" || echo "No change"
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }} 
+
+      
