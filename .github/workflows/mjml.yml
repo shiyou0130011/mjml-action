@@ -45,7 +45,7 @@ jobs:
 
       - name: Commit
         run: |
-          git add bin/*
+          git add ${{ env.OUT_DIR }}/*
           git commit --author "Github Action <action@github.com>"  -m "Update MJML. Last commit: ${{ github.event.head_commit.message }} ( ${{ github.event.head_commit.id }} )" || echo "No change"
           
       - name: Push changes
