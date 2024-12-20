@@ -40,13 +40,13 @@ jobs:
           
       - name: setup git
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "Github Action"  
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name ${{ github.actor }}
 
       - name: Commit
         run: |
           git add bin/*
-          git commit -m "Update MJML. Last commit: ${{ github.event.head_commit.message }} ( ${{ github.event.head_commit.id }} )" || echo "No change"
+          git commit --author "Github Action <action@github.com>"  -m "Update MJML. Last commit: ${{ github.event.head_commit.message }} ( ${{ github.event.head_commit.id }} )" || echo "No change"
           
       - name: Push changes
         uses: ad-m/github-push-action@master
